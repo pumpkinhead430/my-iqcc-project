@@ -62,12 +62,12 @@ def resonator_bias_sweep(qubit, results_data):
 
 def resonator_sweep(qubit,results_data):
     res_element = qubit[1]
+    xy_element  =  qubit[0]
     frequency = config['elements'][res_element]['intermediate_frequency']
     span = 50e6        # 10 MHz total span
     num_points = 500  # Number of frequency points
     avg_p = 500
     step_size = span / num_points # 50 kHz step
-    print(step_size)
     start_if = frequency - (span / 2) # Center your sweep around your base IF
     with program() as prog:
         I = declare(fixed)  # QUA variable for the measured 'I' quadrature
@@ -77,8 +77,9 @@ def resonator_sweep(qubit,results_data):
         n = declare(int)  # QUA variable for the loop index
         j = declare(int)  # QUA variable for the loop index
         i = declare(int)  # QUA variable for the loop index
-        
+        wait(5000, res_element) #reseting qubit
         with for_(n, 0, n < avg_p, n + 1):
+            update_frequency(xy_element, results_data["drive_IF"])
             with for_(j, 0, j < num_points, j + 1):
                 update_frequency(res_element, start_if + j * step_size)
                 measure(
@@ -98,6 +99,7 @@ def resonator_sweep(qubit,results_data):
 def bias_sweep(qubit,results_data):
     z_element = qubit[2]
     res_element = qubit[1]
+    xy_element =  qubit[0]
     IF_frequency = results_data["resonator_IF"]
     amp_lst = np.linspace(-2, 2, 200)
     step_size = (amp_lst[-1] - amp_lst[0])/len(amp_lst)
@@ -110,6 +112,7 @@ def bias_sweep(qubit,results_data):
         a = declare(float)
         I_st = declare_stream()
         Q_st = declare_stream()
+        wait(5000, res_element, z_element) #reseting qubit
         with for_(n, 0, n < avg_p, n + 1):
             assign(a, amp_lst[0])
             update_frequency(res_element, IF_frequency)
@@ -172,20 +175,170 @@ def qubit_sweep(qubit, results_data):
     return prog, [avg_p, num_points, span, xy_IF], "qubit_sweep"
 
 
+def rabi_find(qubit, results_data):
+    z_element = qubit[2]
+    res_element = qubit[1]
+    xy_element = qubit[0]
+    xy_IF =  results_data["drive_IF"]
+    resonator_frequency, bias_amp = results_data["resonator_IF"], results_data["bias_amp"]
+
+
+    num_points = 400  # Number of frequency points
+    avg_p = 500
+    amp_lst = np.linspace(0,2, num_points)
+    step_size  = (amp_lst[-1] - amp_lst[0])/num_points
+    with program() as prog:
+        I = declare(fixed)  # QUA variable for the measured 'I' quadrature
+        Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
+        I_st = declare_stream()
+        Q_st = declare_stream()
+        n = declare(int)  # QUA variable for the loop index
+        j = declare(int)  # QUA variable for the loop index
+        a  =  declare(fixed)
+        
+        with for_(n, 0, n < avg_p, n + 1):
+            assign(a, amp_lst[0])
+            update_frequency(res_element, resonator_frequency)
+            with for_(j, 0, j < num_points, j + 1):
+                align()
+                update_frequency(xy_element, xy_IF)
+                play("x180_Square"*  amp(a), xy_element)
+                align(xy_element, res_element, z_element)
+
+                play("const", z_element, amplitude_scale=bias_amp)
+                measure(
+                    "readout",
+                    res_element,
+                    dual_demod.full("iw1", "iw2", I),
+                    dual_demod.full("iw3", "iw1", Q),
+                    )
+                wait(1000, res_element)
+                save(I, I_st)
+                save(Q, Q_st)
+                assign(a,  a +  step_size)
+
+        with stream_processing():
+            I_st.buffer(num_points).save_all("I_raw")
+            Q_st.buffer(num_points).save_all("Q_raw")
+    return prog, [avg_p, num_points, list(amp_lst)], "rabi_find"
+
+
+def discrimination(qubit, results_data):
+    z_element = qubit[2]
+    res_element = qubit[1]
+    xy_element = qubit[0]
+    xy_IF,  pi_pulse_amp =  results_data["drive_IF"], results_data["pi_pulse_amp"]
+    resonator_frequency, bias_amp = results_data["resonator_IF"], results_data["bias_amp"]
+
+    avg_p = 1000
+
+
+    with program() as prog:
+        I_0 = declare(fixed)  # QUA variable for the measured 'I' quadrature
+        Q_0 = declare(fixed)  # QUA variable for the measured 'Q' quadrature
+        I_st_0 = declare_stream()
+        Q_st_0 = declare_stream()
+        I_1 = declare(fixed)  # QUA variable for the measured 'I' quadrature
+        Q_1 = declare(fixed)  # QUA variable for the measured 'Q' quadrature
+        I_st_1 = declare_stream()
+        Q_st_1 = declare_stream()
+        I = declare(fixed)
+        Q = declare(fixed)
+        
+        n = declare(int)
+
+        with for_(n, 0, n < avg_p, n + 1):
+            align()
+            play("const", z_element, amplitude_scale=bias_amp)
+
+            update_frequency(res_element, resonator_frequency)
+            measure(
+                "readout",
+                res_element,
+                dual_demod.full("iw1", "iw2", I_0),
+                dual_demod.full("iw3", "iw1", Q_0),
+                )
+            wait(1000, res_element)
+            save(I_0, I_st_0)
+            save(Q_0, Q_st_0)
+        
+        with for_(n, 0, n < avg_p, n + 1):
+            align()
+            update_frequency(xy_element, xy_IF)
+            play("x180_Square"*  amp(pi_pulse_amp), xy_element)
+            align(xy_element, res_element, z_element)
+
+            play("const", z_element, amplitude_scale=bias_amp)
+
+            update_frequency(res_element, resonator_frequency)
+            measure(
+                "readout",
+                res_element,
+                dual_demod.full("iw1", "iw2", I_1),
+                dual_demod.full("iw3", "iw1", Q_1),
+                )
+            wait(1000, res_element)
+            save(I_1, I_st_1)
+            save(Q_1, Q_st_1)
+
+        with stream_processing():
+            I_st_0.save_all("I_raw_0")
+            Q_st_0.save_all("Q_raw_0")
+            I_st_1.save_all("I_raw_1")
+            Q_st_1.save_all("Q_raw_1")
+    return prog, [avg_p], "discrimination"
+
+def consecutive_pulse(qubit, results_data):
+    z_element = qubit[2]
+    res_element = qubit[1]
+    xy_element = qubit[0]
+    xy_IF,  pi_pulse_amp =  results_data["drive_IF"], results_data["pi_pulse_amp"]
+    resonator_frequency, bias_amp = results_data["resonator_IF"], results_data["bias_amp"]
+    avg_p = 1000
+    num_pulses = 10
+    with program() as prog:
+            I = declare(fixed)
+            Q = declare(fixed)
+            I_st = declare_stream()
+            Q_st = declare_stream()
+            n = declare(int)
+            i = declare(int)
+            j = declare(int)
+            with for_(i, 0, i < avg_p, i + 1):
+                with for_(n, 0, n < num_pulses, n + 1):
+                    with for_(j, 0, j < n, j + 1):
+                        align()
+                        update_frequency(xy_element, xy_IF)
+                        play("x180_Square"*  amp(pi_pulse_amp), xy_element)
+
+                    update_frequency(res_element, resonator_frequency)
+                    align()
+                    play("const", z_element, amplitude_scale=bias_amp)
+                    measure(
+                        "readout",
+                        res_element,
+                        dual_demod.full("iw1", "iw2", I),
+                        dual_demod.full("iw3", "iw1", Q),
+                        )
+                    wait(50000, res_element)#wait for qubit de-excatation
+                    save(I, I_st)
+                    save(Q, Q_st)
+        
+            with stream_processing():
+                I_st.buffer(num_pulses).save_all("I_raw")
+                Q_st.buffer(num_pulses).save_all("Q_raw")
+    return prog, [avg_p, num_pulses], "consecutive_pulse"
+
+
 LO_f = config['controllers']['con1']['fems'][1]['analog_outputs'][1]['upconverter_frequency']
 qubit = "Q1"
 qubit1 = [f"{qubit}.xy", f"{qubit}.resonator",  f"{qubit}.z"]
 
-
-def rabi_sweep(qubit, results_data):
-    pass
-
 def main():
     qc = IQCC_Cloud(quantum_computer_backend="qolab", api_token=token)
-
     with open(f"{current_dir}/data/results.json", 'r') as f:
         results_data = json.load(f)
-    prog, extra, name = resonator_sweep(qubit1, results_data)
+    prog, extra, name = discrimination(qubit1, results_data)
     run_data = qc.execute(prog, config, False)
     run_data["setup"] = extra + [LO_f]
     file_path = current_dir / "data"/ name

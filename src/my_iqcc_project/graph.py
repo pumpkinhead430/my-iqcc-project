@@ -6,7 +6,7 @@ from multipledispatch import dispatch
 import matplotlib.pyplot as plt
 
 class Graph:
-    def __init__(self,point_set,delta_point_set, method ,initial_guess , title='', label='', x_label='', y_label='', x_unit='', y_unit='', log=False):
+    def __init__(self,point_set,delta_point_set, method ,initial_guess , title='', label='', x_label='', y_label='', x_unit='', y_unit='', log=False, style='dots'):
         self.x_unit = x_unit
         self.y_unit = y_unit
         self.method = method
@@ -15,6 +15,7 @@ class Graph:
         self.x_label = x_label
         self.y_label = y_label
         self.log = log
+        self.style  =  style
         self.extra_graphs = []
         self._only_draw = False
         
@@ -95,7 +96,10 @@ class Graph:
 
     def _draw_fit(self):
         if self._only_draw:
-            plt.plot(self.x, self.y,linestyle='-', label=self.label)
+            if self.style == "dots":
+                plt.plot(self.x, self.y, marker='.', linestyle="none" ,label=self.label, markersize=10)
+            else:
+                plt.plot(self.x, self.y, label=self.label)
         else:
             plt.errorbar(self.x, self.y, xerr=self.delta_x, yerr=self.delta_y, marker='o',linestyle='', label=self.label)
         fit_x = np.linspace(min(self.x), max(self.x), 10* len(self.x))
