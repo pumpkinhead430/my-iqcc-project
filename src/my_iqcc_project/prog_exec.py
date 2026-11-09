@@ -261,7 +261,7 @@ def discrimination(qubit, results_data):
             wait(1000, res_element)
             save(I_0, I_st_0)
             save(Q_0, Q_st_0)
-        
+
         with for_(n, 0, n < avg_p, n + 1):
             align()
             update_frequency(xy_element, xy_IF)
@@ -310,6 +310,7 @@ def consecutive_pulse(qubit, results_data):
                         align()
                         update_frequency(xy_element, xy_IF)
                         play("x180_Square"*  amp(pi_pulse_amp), xy_element)
+                        wait(25, xy_element)
 
                     update_frequency(res_element, resonator_frequency)
                     align()
@@ -338,7 +339,7 @@ def main():
     qc = IQCC_Cloud(quantum_computer_backend="qolab", api_token=token)
     with open(f"{current_dir}/data/results.json", 'r') as f:
         results_data = json.load(f)
-    prog, extra, name = discrimination(qubit1, results_data)
+    prog, extra, name = consecutive_pulse(qubit1, results_data)
     run_data = qc.execute(prog, config, False)
     run_data["setup"] = extra + [LO_f]
     file_path = current_dir / "data"/ name
