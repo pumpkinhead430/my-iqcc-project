@@ -339,7 +339,7 @@ def main():
     qc = IQCC_Cloud(quantum_computer_backend="qolab", api_token=token)
     with open(f"{current_dir}/data/results.json", 'r') as f:
         results_data = json.load(f)
-    prog, extra, name = consecutive_pulse(qubit1, results_data)
+    prog, extra, name = rabi_find(qubit1, results_data)
     run_data = qc.execute(prog, config, False)
     run_data["setup"] = extra + [LO_f]
     file_path = current_dir / "data"/ name
