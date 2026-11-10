@@ -165,7 +165,7 @@ def consecutive_pulse():
 
 
 def main():
-    discrimination()
+    rabi_find()
 
 
 if __name__ == "__main__":
