@@ -101,7 +101,7 @@ def rabi_find():
         run_data = json.load(f)
     avg_p, num_points,amp_lst, LO_f = run_data["setup"]
     IQ_abs, phase,I, Q = IQ_extract(run_data)
-    g = graph.Graph(zip(amp_lst, IQ_abs), None, None, None, title="", x_label="drive amplitude", y_label="amplitude", x_unit="[Ghz]", y_unit="[a.u.]" )
+    g = graph.Graph(zip(amp_lst, IQ_abs), None, None, None, title="", x_label="drive amplitude", y_label="amplitude", x_unit="[Ghz]", y_unit="[a.u.]",style="line")
     g.plot_fit()
     plt.show()
 
@@ -165,7 +165,7 @@ def consecutive_pulse():
 
 
 def main():
-    rabi_find()
+    discrimination()
 
 
 if __name__ == "__main__":
