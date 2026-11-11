@@ -4,6 +4,7 @@ import numpy as np
 import json
 import graph
 from scipy.signal import find_peaks
+from scipy.optimize import curve_fit
 from pathlib import Path
 current_dir = Path(__file__).resolve().parent
 
@@ -95,9 +96,38 @@ def qubit_sweep():
     #write resonator result to json
     add_results("drive_IF", resonator_frequency - LO_f)
 
+def damped_cosine(x, A, f, phi, C, decay):
+    return A * np.cos(2 * np.pi * f * x + phi) * np.exp(-x / decay) + C
+
 
 def rabi_find():
     with open(f"{current_dir}\\data\\rabi_find.json", "r") as f:
+        run_data = json.load(f)
+    avg_p, num_points,amp_lst, LO_f = run_data["setup"]
+    IQ_abs, phase,I, Q = IQ_extract(run_data)
+
+    peak_indices, _ = find_peaks(IQ_abs,prominence=0.2e-4, distance=20)
+    #min_indices, _ = find_peaks(-IQ_abs,prominence=0.2e-4, distance=20)
+    #add_results("pi_pulse_amp",amp_lst[peak_indices[0]])
+
+    g = graph.Graph(zip(amp_lst, IQ_abs), None, None, None, title="", x_label="drive amplitude", y_label="amplitude", x_unit="[Ghz]", y_unit="[a.u.]",style="line")
+    g.plot_fit()
+    plt.show()
+
+    p0 = [0.5e-4, 0.03, 0, 4.2e-4, 3000] 
+    popt, pcov = curve_fit(damped_cosine, amp_lst, IQ_abs, p0=p0)
+    A, f_rabi, phi, C, t_decay = popt
+    pi_pulse_parameter = 1 / (2 * f_rabi)
+    print(f"Extracted Rabi Frequency: {f_rabi}")
+    print(f"Rabi Decay Time (T_Rabi): {t_decay}")
+    print(f"Exact Pi-Pulse Parameter: {pi_pulse_parameter}")
+
+
+
+
+
+def readout_amp_sweep():
+    with open(f"{current_dir}\\data\\readout_amp_sweep.json", "r") as f:
         run_data = json.load(f)
     avg_p, num_points,amp_lst, LO_f = run_data["setup"]
     IQ_abs, phase,I, Q = IQ_extract(run_data)
@@ -141,6 +171,17 @@ def discrimination():
     plt.legend()
     plt.show()
     add_results("sep_line", {"m": perp_m, "b" : perp_b})
+    # I_0, Q_0,_,_,_ = list(run_data["result"].values())
+    # I_0 =  np.squeeze(np.array(I_0))
+    # Q_0 =  np.squeeze(np.array(Q_0))
+    # IQ_abs = np.abs(I_0 + 1j * Q_0)
+    # phase = np.atan2(Q_0,I_0)
+    # print(sum([1 if i < 4e-4 else 0 for i in IQ_abs])/ len(IQ_abs))
+    # p_0 = graph.Graph(zip(range(len(phase)), IQ_abs), None, None, None, title="IQ_plane", x_label="I", y_label="Q", x_unit="[a.u.]", y_unit="[a.u.]", label="0")
+    # p_0.plot_fit()
+    # plt.show()
+
+
 
 def consecutive_pulse():
     with open(f"{current_dir}\\data\\consecutive_pulse.json", "r") as f:
@@ -165,7 +206,7 @@ def consecutive_pulse():
 
 
 def main():
-    discrimination()
+    rabi_find()
 
 
 if __name__ == "__main__":

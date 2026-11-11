@@ -183,26 +183,28 @@ def rabi_find(qubit, results_data):
     resonator_frequency, bias_amp = results_data["resonator_IF"], results_data["bias_amp"]
 
 
+    
     num_points = 400  # Number of frequency points
     avg_p = 500
     amp_lst = np.linspace(0,2, num_points)
+    durations = [int(x) for x in np.arange(4, 5000, 4)]
     step_size  = (amp_lst[-1] - amp_lst[0])/num_points
     with program() as prog:
         I = declare(fixed)  # QUA variable for the measured 'I' quadrature
         Q = declare(fixed)  # QUA variable for the measured 'Q' quadrature
         I_st = declare_stream()
         Q_st = declare_stream()
-        n = declare(int)  # QUA variable for the loop index
+        t = declare(int)  # QUA variable for the loop index
         j = declare(int)  # QUA variable for the loop index
         a  =  declare(fixed)
         
-        with for_(n, 0, n < avg_p, n + 1):
+        with for_(j, 0 , j < avg_p, j+1):
             assign(a, amp_lst[0])
             update_frequency(res_element, resonator_frequency)
-            with for_(j, 0, j < num_points, j + 1):
+            with for_each_(t, durations):
                 align()
                 update_frequency(xy_element, xy_IF)
-                play("x180_Square"*  amp(a), xy_element)
+                play("x180_DragCosine", xy_element,duration=t)
                 align(xy_element, res_element, z_element)
 
                 play("const", z_element, amplitude_scale=bias_amp)
@@ -212,16 +214,15 @@ def rabi_find(qubit, results_data):
                     dual_demod.full("iw1", "iw2", I),
                     dual_demod.full("iw3", "iw1", Q),
                     )
-                wait(1000, res_element)
+                wait(20000, res_element)
                 save(I, I_st)
                 save(Q, Q_st)
                 assign(a,  a +  step_size)
 
         with stream_processing():
-            I_st.buffer(num_points).save_all("I_raw")
-            Q_st.buffer(num_points).save_all("Q_raw")
-    return prog, [avg_p, num_points, list(amp_lst)], "rabi_find"
-
+            I_st.buffer(len(durations)).save_all("I_raw")
+            Q_st.buffer(len(durations)).save_all("Q_raw")
+    return prog, [avg_p, num_points, durations], "rabi_find"
 
 def discrimination(qubit, results_data):
     z_element = qubit[2]
@@ -230,23 +231,23 @@ def discrimination(qubit, results_data):
     xy_IF,  pi_pulse_amp =  results_data["drive_IF"], results_data["pi_pulse_amp"]
     resonator_frequency, bias_amp = results_data["resonator_IF"], results_data["bias_amp"]
 
-    avg_p = 1000
+    avg_p = 10000
 
 
     with program() as prog:
-        I_0 = declare(fixed)  # QUA variable for the measured 'I' quadrature
-        Q_0 = declare(fixed)  # QUA variable for the measured 'Q' quadrature
+        I_0 = declare(fixed)
+        Q_0 = declare(fixed)
         I_st_0 = declare_stream()
         Q_st_0 = declare_stream()
-        I_1 = declare(fixed)  # QUA variable for the measured 'I' quadrature
-        Q_1 = declare(fixed)  # QUA variable for the measured 'Q' quadrature
+        I_1 = declare(fixed)
+        Q_1 = declare(fixed)
         I_st_1 = declare_stream()
         Q_st_1 = declare_stream()
         I = declare(fixed)
         Q = declare(fixed)
         
         n = declare(int)
-
+        wait(500000, z_element, res_element, xy_element)
         with for_(n, 0, n < avg_p, n + 1):
             align()
             play("const", z_element, amplitude_scale=bias_amp)
@@ -258,18 +259,16 @@ def discrimination(qubit, results_data):
                 dual_demod.full("iw1", "iw2", I_0),
                 dual_demod.full("iw3", "iw1", Q_0),
                 )
-            wait(1000, res_element)
+            wait(20000, xy_element, res_element, z_element)
             save(I_0, I_st_0)
             save(Q_0, Q_st_0)
 
         with for_(n, 0, n < avg_p, n + 1):
             align()
             update_frequency(xy_element, xy_IF)
-            play("x180_Square"*  amp(pi_pulse_amp), xy_element)
+            play("x180_DragCosine", xy_element,duration=12)
             align(xy_element, res_element, z_element)
-
             play("const", z_element, amplitude_scale=bias_amp)
-
             update_frequency(res_element, resonator_frequency)
             measure(
                 "readout",
@@ -277,7 +276,7 @@ def discrimination(qubit, results_data):
                 dual_demod.full("iw1", "iw2", I_1),
                 dual_demod.full("iw3", "iw1", Q_1),
                 )
-            wait(1000, res_element)
+            wait(20000, xy_element, res_element, z_element)
             save(I_1, I_st_1)
             save(Q_1, Q_st_1)
 
@@ -348,4 +347,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+        main()
