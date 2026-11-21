@@ -1,10 +1,163 @@
 {
     "resonator_IF": -233999627.2003994,
-    "bias_amp": -0.3517587939698492,
+    "bias_amp": -0.3718592964824121,
     "drive_IF": 71656125.80976486,
-    "pi_pulse_amp": 0.21553884711779447,
-    "sep_line": {
-        "m": -7.659041478859066,
-        "b": 0.0025405141391719177
-    }
+    "rabi_frequency_hz": 8934392.341520518,
+    "rabi_decay_ns": 999592147.1506385,
+    "pi_duration_ns_fit": 55.96351502008322,
+    "pi_duration_ns": 56,
+    "pi_cycles": 14,
+    "discriminator_w": [
+        2287.692679437411,
+        -3416.6653547704395
+    ],
+    "discriminator_b": -1.581375841710328,
+    "discriminator_fidelity_g": 0.4936,
+    "discriminator_fidelity_e": 0.5116,
+    "discriminator_balanced_fidelity": 0.538,
+    "iq_ground_centroid": [
+        -0.0001014239601790905,
+        0.0004511181652545929
+    ],
+    "iq_excited_centroid": [
+        -9.916585981845855e-05,
+        0.00045056248679757117
+    ],
+    "pi_pulse_contrast_lambda": 1.3375895929601759e-21,
+    "pi_gate_fidelity_avg_depolarizing_assumption": 0.5,
+    "pi_gate_process_fidelity_depolarizing_assumption": 0.25,
+    "pi_gate_population_parity_fidelity": 0.5,
+    "T1_ns": 29136.130278640267,
+    "T1_us": 29.136130278640266,
+    "T2star_ns": 10000.0,
+    "T2star_us": 10.0,
+    "ramsey_fit_frequency_hz": 2000000.0,
+    "ramsey_fit_exponent": 1.0,
+    "T2_ns": 15027.300432567461,
+    "T2_us": 15.027300432567461,
+    "echo_fit_exponent": 2.9999999999999996,
+    "rabi_frequency_error_hz": 156713.00837907728,
+    "rabi_decay_error_ns": 5.238764398562437e-19,
+    "pi_duration_error_ns": 0.9816236474759898,
+    "rabi_fit_chi_square": 121.02797944023318,
+    "rabi_fit_reduced_chi_square": 1.0085664953352764,
+    "rabi_fit_p_value": 0.45652710702198707,
+    "discriminator_balanced_fidelity_error_1sigma": 0.010694584487073815,
+    "discriminator_fidelity_g_error_1sigma": 0.009997181857550774,
+    "discriminator_fidelity_e_error_1sigma": 0.009995310651849776,
+    "discriminator_test_shots_g": 2500,
+    "discriminator_test_shots_e": 2500,
+    "iq_ground_centroid_training": [
+        -0.0001511217772960663,
+        0.00043099673837423323
+    ],
+    "iq_excited_centroid_training": [
+        -0.0001508882939815521,
+        0.00042937685698270797
+    ],
+    "iq_centroid_separation": 1.6366215753088265e-06,
+    "discriminator_confusion_counts": {
+        "ground_correct": 1234,
+        "ground_misclassified_as_excited": 1266,
+        "excited_correct": 1279,
+        "excited_misclassified_as_ground": 1221
+    },
+    "pi_pulse_contrast_lambda_error": 70.2488259158127,
+    "pi_gate_fidelity_avg_error": 35.12441295790635,
+    "pi_gate_process_fidelity_error": 52.68661943685953,
+    "pi_fidelity_fit_chi_square": 18.462120025576752,
+    "pi_fidelity_fit_reduced_chi_square": 0.659361429484884,
+    "pi_fidelity_fit_p_value": 0.9139084420714733,
+    "T1_error_ns": 223627.9085119327,
+    "T1_error_us": 223.6279085119327,
+    "T1_fit_chi_square": 41.197853748275755,
+    "T1_fit_reduced_chi_square": 0.8582886197557449,
+    "T1_fit_p_value": 0.7457259462036072,
+    "T2star_error_ns": 0.0,
+    "T2star_error_us": 0.0,
+    "ramsey_fit_frequency_error_hz": 0.0,
+    "T2star_fit_chi_square": 0.0,
+    "T2star_fit_reduced_chi_square": 0.0,
+    "T2star_fit_p_value": 1.0,
+    "T2_error_ns": 10764.481629610553,
+    "T2_error_us": 10.764481629610552,
+    "T2_fit_chi_square": 384.888196901279,
+    "T2_fit_reduced_chi_square": 0.9694916798520882,
+    "T2_fit_p_value": 0.6593023143819411,
+    "rabi_decay_estimate_ns": 1908.70833862264,
+    "rabi_decay_estimate_error_ns": 3735.136352134321,
+    "rabi_decay_resolved": true,
+    "pi_duration_estimate_ns": 6.098024558803511,
+    "pi_duration_estimate_error_ns": 0.012133558294236927,
+    "pi_calibration_validated": false,
+    "Rabi_fit": {
+        "parameters": [
+            -6.493975463676926e-05,
+            5.343066528994015e-07,
+            119999.99999999999,
+            6.771195718063702,
+            3.9856808786752524
+        ],
+        "errors": [
+            1.3514083871650022e-07,
+            1.920952532977236e-07,
+            4.73890749499546e-13,
+            0.16216740677379796,
+            0.7128641149110674
+        ],
+        "covariance": [
+            [
+                1.8263046288999126e-14,
+                2.6257991373942205e-16,
+                -1.3849746406256377e-21,
+                2.790658185712408e-10,
+                -2.1859542248902004e-09
+            ],
+            [
+                2.6257991373942205e-16,
+                3.690058633951659e-14,
+                -1.171012167186759e-21,
+                5.922426412543682e-10,
+                -1.5875860736096017e-09
+            ],
+            [
+                -1.3849746406256379e-21,
+                -1.1710121671867592e-21,
+                2.245724424612414e-25,
+                -6.919446703758746e-14,
+                3.3693286076627866e-13
+            ],
+            [
+                2.790658185712408e-10,
+                5.922426412543683e-10,
+                -6.919446703758746e-14,
+                0.026298267819738454,
+                -0.10017239385872692
+            ],
+            [
+                -2.1859542248902004e-09,
+                -1.587586073609602e-09,
+                3.3693286076627866e-13,
+                -0.10017239385872691,
+                0.5081752463279394
+            ]
+        ],
+        "chi_square_min": 140.5087756370283,
+        "chi_square_red": 0.9690260388760572,
+        "dof": 145,
+        "p_value": 0.5898830754394171
+    },
+    "f_R_MHz": 6.771195718063702,
+    "f_R_error_MHz": 0.16216740677379796,
+    "T_Rabi_us": 119999.99999999999,
+    "T_Rabi_error_us": 4.73890749499546e-13,
+    "pi_time_ns": 73.8422017053999,
+    "pi_time_error_ns": 1.7684909519136964,
+    "pi_length_ns": 72.0,
+    "pi_amp": 1.0255861347972208,
+    "rabi_frequency_MHz_candidate": 10.798670837895681,
+    "rabi_frequency_MHz_stat_error": 0.0003333891999424257,
+    "rabi_decay_us_candidate": null,
+    "pi_gate_fidelity_model_candidate": 0.992082683289802,
+    "pi_gate_fidelity_model_stat_error": 0.0015393581104485386
 }

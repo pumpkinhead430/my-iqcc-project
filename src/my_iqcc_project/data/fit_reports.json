@@ -1,0 +1,9 @@
+{
+    "echo": {
+        "status": "fit_skipped",
+        "reason": "readout assignment fidelity 0.538 is too low",
+        "chi_square_red": null,
+        "p_value": null,
+        "uncertainty": "68.3% Wilson binomial interval"
+    }
+}
